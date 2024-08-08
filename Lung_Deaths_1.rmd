@@ -1,0 +1,108 @@
+---
+title: "UK Lung Deaths Data Analysis"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(forecast)
+library(dplyr)
+```
+
+## Introduction
+
+This notebook analyzes the built-in UK Lung Deaths dataset. The dataset consists of monthly deaths from bronchitis, emphysema, and asthma in the UK, categorized by sex (male and female).
+
+## Loading the Data
+
+```{r load-data}
+# Load the data
+data("ldeaths")
+data("mdeaths")
+data("fdeaths")
+
+# Create a data frame
+ldeaths_df <- data.frame(
+  date = time(ldeaths),
+  total_deaths = as.numeric(ldeaths),
+  male_deaths = as.numeric(mdeaths),
+  female_deaths = as.numeric(fdeaths)
+)
+
+# Display the first few rows of the dataset
+head(ldeaths_df)
+```
+
+## Basic Exploration
+
+```{r basic-exploration}
+# Summary statistics
+summary(ldeaths_df)
+
+# Check for missing values
+sum(is.na(ldeaths_df))
+```
+
+## Visualization
+
+### Total Deaths Over Time
+
+```{r total-deaths-plot}
+ggplot(ldeaths_df, aes(x = date, y = total_deaths)) +
+  geom_line(color = "blue") +
+  labs(title = "Total Lung Deaths Over Time", x = "Year", y = "Total Deaths")
+```
+
+### Male and Female Deaths Over Time
+
+```{r male-female-deaths-plot}
+ggplot(ldeaths_df) +
+  geom_line(aes(x = date, y = male_deaths, color = "Male Deaths")) +
+  geom_line(aes(x = date, y = female_deaths, color = "Female Deaths")) +
+  labs(title = "Male and Female Lung Deaths Over Time", x = "Year", y = "Deaths") +
+  scale_color_manual("", breaks = c("Male Deaths", "Female Deaths"), values = c("blue", "red"))
+```
+
+### Seasonal Decomposition
+
+```{r seasonal-decomposition}
+# Decompose the time series
+ldeaths_decomp <- decompose(ts(ldeaths, frequency = 12))
+mdeaths_decomp <- decompose(ts(mdeaths, frequency = 12))
+fdeaths_decomp <- decompose(ts(fdeaths, frequency = 12))
+
+# Plot the decompositions
+plot(ldeaths_decomp)
+plot(mdeaths_decomp)
+plot(fdeaths_decomp)
+```
+
+## Statistical Analysis
+
+### Correlation Between Male and Female Deaths
+
+```{r correlation-analysis}
+# Calculate correlation
+correlation <- cor(ldeaths_df$male_deaths, ldeaths_df$female_deaths)
+correlation
+```
+
+### Seasonal Autoregressive Integrated Moving Average (SARIMA) Model
+
+```{r sarima-model}
+# Fit SARIMA model for total deaths
+sarima_model <- auto.arima(ldeaths)
+summary(sarima_model)
+
+# Forecast next 12 months
+forecast_sarima <- forecast(sarima_model, h = 12)
+plot(forecast_sarima, main = "SARIMA Forecast for Total Deaths")
+```
+
+## Conclusion
+
+This analysis provided an overview of the UK Lung Deaths dataset, including visualizations and a simple SARIMA model for forecasting future deaths. The dataset shows clear seasonal patterns and a strong correlation between male and female deaths due to lung diseases.
+```
+
+This corrected version should now run without issues. You can save this content back into your R Markdown file and run it again.
